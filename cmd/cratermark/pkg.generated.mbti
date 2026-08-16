@@ -6,6 +6,7 @@ package "cin330/cratermark/cmd/cratermark"
 // Errors
 
 // Types and methods
+type ScanConfig
 
 // Type aliases
 

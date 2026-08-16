@@ -2,7 +2,7 @@
 
 ## Overview
 
-Use `cratermark` to parse, analyze, format, and render Markdown.
+Use `cratermark` to analyze links, anchors, assets, and document reachability.
 
 > CraterMark keeps source positions so diagnostics can point back to the input.
 
@@ -14,6 +14,6 @@ Use `cratermark` to parse, analyze, format, and render Markdown.
 
 ---
 
-![CraterMark logo](logo.png)
+![CraterMark logo](logo.svg)
 
 See [Overview](#overview).

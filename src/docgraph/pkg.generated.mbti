@@ -1,0 +1,140 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "cin330/cratermark/src/docgraph"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn affected(GraphReport, String) -> ImpactReport
+
+pub fn analyze(Workspace) -> GraphReport
+
+pub fn dirname(String) -> String
+
+pub fn is_document_asset(String) -> Bool
+
+pub fn is_external_target(String) -> Bool
+
+pub fn is_markdown_path(String) -> Bool
+
+pub fn is_unsafe_target(String) -> Bool
+
+pub fn normalize_path(String) -> String
+
+pub fn render_dot(GraphReport) -> String
+
+pub fn render_impact(ImpactReport) -> String
+
+pub fn render_json_report(GraphReport) -> String
+
+pub fn render_markdown_report(GraphReport) -> String
+
+pub fn render_mermaid(GraphReport) -> String
+
+pub fn render_stats(GraphStats) -> String
+
+pub fn render_text(GraphReport) -> String
+
+pub fn severity_name(Severity) -> String
+
+// Errors
+
+// Types and methods
+pub(all) struct Diagnostic {
+  code : String
+  severity : Severity
+  file : String
+  line : Int
+  column : Int
+  message : String
+  target : String
+} derive(Eq, @debug.Debug)
+
+pub(all) struct DocumentNode {
+  path : String
+  headings : Array[HeadingRef]
+} derive(Eq, @debug.Debug)
+
+pub(all) struct GraphEdge {
+  source : String
+  target : String
+  kind : LinkKind
+  line : Int
+} derive(Eq, @debug.Debug)
+
+pub(all) struct GraphReport {
+  entries : Array[String]
+  documents : Array[DocumentNode]
+  assets : Array[String]
+  links : Array[LinkRef]
+  edges : Array[GraphEdge]
+  reachable : Array[String]
+  diagnostics : Array[Diagnostic]
+  stats : GraphStats
+} derive(Eq, @debug.Debug)
+
+pub(all) struct GraphStats {
+  documents : Int
+  headings : Int
+  internal_links : Int
+  external_links : Int
+  asset_links : Int
+  assets : Int
+  reachable_documents : Int
+  errors : Int
+  warnings : Int
+} derive(Eq, @debug.Debug)
+
+pub(all) struct HeadingRef {
+  title : String
+  anchor : String
+  line : Int
+  duplicate : Bool
+} derive(Eq, @debug.Debug)
+
+pub(all) struct ImpactReport {
+  changed : String
+  direct : Array[String]
+  transitive : Array[String]
+} derive(Eq, @debug.Debug)
+
+pub(all) enum LinkKind {
+  DocumentLink
+  AssetLink
+  ExternalLink
+} derive(Eq, @debug.Debug)
+
+pub(all) struct LinkRef {
+  source : String
+  label : String
+  raw_target : String
+  target_path : String
+  fragment : String
+  kind : LinkKind
+  line : Int
+  column : Int
+  escaped_root : Bool
+} derive(Eq, @debug.Debug)
+
+pub(all) enum Severity {
+  Warning
+  Error
+} derive(Eq, @debug.Debug)
+
+pub(all) struct SourceFile {
+  path : String
+  content : String
+} derive(Eq, @debug.Debug)
+pub fn SourceFile::new(String, String) -> Self
+
+pub(all) struct Workspace {
+  documents : Array[SourceFile]
+  assets : Array[String]
+  entries : Array[String]
+} derive(Eq, @debug.Debug)
+pub fn Workspace::new(Array[SourceFile], assets? : Array[String], entries? : Array[String]) -> Self
+
+// Type aliases
+
+// Traits

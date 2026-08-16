@@ -1,6 +1,8 @@
 # Supported Markdown syntax
 
-CraterMark v0.1 recognizes the following forms.
+CraterMark's focused extraction layer recognizes the following forms. This
+layer supports the project graph; full CommonMark compatibility is not a
+CraterMark goal.
 
 | Construct | Example | Notes |
 | --- | --- | --- |
@@ -14,8 +16,8 @@ CraterMark v0.1 recognizes the following forms.
 | Strong | `**bold**` | Parsed recursively |
 | Emphasis | `*italic*` | `*` or `_` marker |
 | Inline code | `` `code` `` | Single backtick delimiter |
-| Link | `[label](url)` | Inline label content is parsed |
-| Image | `![alt](url)` | Empty alt text is linted |
+| Link | <code>&#91;label&#93;(url)</code> | Inline label content is parsed |
+| Image | <code>!&#91;alt&#93;(url)</code> | Empty alt text is linted |
 
 ## Not yet supported
 
