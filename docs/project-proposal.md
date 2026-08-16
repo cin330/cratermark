@@ -32,8 +32,10 @@ the new graph analyzer.
 - Configurable roots and exclusions
 - Portable pure-MoonBit graph tests
 
-Later milestones add reference-style links, external HTTP checks, issue
-baselines, safe repair, SARIF, and Git-diff-aware incremental scans.
+The current implementation also extracts full/collapsed reference-style links
+and images plus same-line raw-HTML anchors and images. Later milestones add
+external HTTP checks, issue baselines, safe repair, SARIF, and Git-diff-aware
+incremental scans.
 
 ## Technical route
 

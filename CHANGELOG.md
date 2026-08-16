@@ -2,6 +2,15 @@
 
 All notable changes to CraterMark are documented here.
 
+## 0.3.0 - 2026-08-16
+
+- Extract full and collapsed reference-style Markdown links.
+- Resolve reference-style images through document-wide definitions.
+- Extract links from raw-HTML `<a href>` and `<img src>` tags, including
+  single-quoted, double-quoted, and unquoted attributes.
+- Ignore supplemental link syntax inside fenced and inline code.
+- Add runnable examples and five graph-engine regression tests.
+
 ## 0.2.0 - 2026-08-16
 
 - Reposition CraterMark as a project-level documentation graph and integrity

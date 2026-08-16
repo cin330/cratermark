@@ -52,7 +52,9 @@ The v0.2 product core:
   impact types.
 - `path.mbt`: cross-platform repository-path normalization, target splitting,
   root-escape detection, and target classification.
-- `extract.mbt`: heading anchors and link/resource references.
+- `extract.mbt`: AST heading anchors and inline link/resource references.
+- `supplemental.mbt`: document-wide reference definitions, reference-style
+  links/images, and raw-HTML `href`/`src` extraction.
 - `analyze.mbt`: resolution, integrity rules, reachability, and reverse-impact
   traversal.
 - `render.mbt`: terminal, Markdown, JSON, Mermaid, and DOT output.

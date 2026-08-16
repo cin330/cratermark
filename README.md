@@ -45,6 +45,7 @@ warning CMG006 assets/unused.png
 ## Core capabilities
 
 - Recursive Markdown workspace discovery
+- Inline, reference-style, and raw-HTML link/image extraction
 - Cross-file link and heading-anchor resolution
 - Windows/Linux path-case mismatch detection
 - Missing image and attachment detection
@@ -237,7 +238,10 @@ The supported syntax boundary of that extraction layer is documented in
 
 ## Current limitations
 
-- Reference-style Markdown links and raw-HTML links are not extracted yet.
+- Reference-style extraction supports full and collapsed labels; shortcut-only
+  references such as `[guide]` are not interpreted as links.
+- Raw-HTML extraction currently requires each `<a>` or `<img>` opening tag to
+  appear on one source line.
 - External HTTP URLs are counted but are not fetched.
 - Exclusions are path prefixes rather than a complete glob implementation.
 - Safe automatic repair, baselines, and SARIF output are planned for later releases.

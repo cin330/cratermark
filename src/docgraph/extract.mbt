@@ -115,5 +115,6 @@ fn extract_document(file : SourceFile) -> (DocumentNode, Array[LinkRef]) {
   let links : Array[LinkRef] = []
   collect_headings(document.children, headings, anchors)
   collect_block_links(file.path, document.children, links)
+  collect_supplemental_links(file.path, file.content, links)
   ({ path: file.path, headings }, links)
 }
