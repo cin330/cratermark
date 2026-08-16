@@ -35,6 +35,12 @@ suffix used by the extractor and reports the ambiguity.
 
 Normalizing a relative target would traverse above the scanned project root.
 
+## CMG009 — undefined reference
+
+A full or collapsed reference-style link or image uses an identifier that has
+no matching definition in the same Markdown document. CraterMark reports each
+source occurrence so it can be annotated on the affected PR line.
+
 ## CMG010 — unsafe scheme
 
 A link starts with an unsafe scheme such as `javascript:` or

@@ -108,13 +108,16 @@ fn collect_block_links(
 }
 
 ///|
-fn extract_document(file : SourceFile) -> (DocumentNode, Array[LinkRef]) {
+fn extract_document(
+  file : SourceFile,
+) -> (DocumentNode, Array[LinkRef], Array[Diagnostic]) {
   let document = @parser.parse(file.content)
   let headings : Array[HeadingRef] = []
   let anchors : Array[String] = []
   let links : Array[LinkRef] = []
+  let diagnostics : Array[Diagnostic] = []
   collect_headings(document.children, headings, anchors)
   collect_block_links(file.path, document.children, links)
-  collect_supplemental_links(file.path, file.content, links)
-  ({ path: file.path, headings }, links)
+  collect_supplemental_links(file.path, file.content, links, diagnostics)
+  ({ path: file.path, headings }, links, diagnostics)
 }
