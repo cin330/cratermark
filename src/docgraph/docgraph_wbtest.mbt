@@ -249,3 +249,20 @@ test "supplemental links participate in integrity diagnostics" {
   assert_true(has_code(report, "CMG010"))
   assert_eq(report.stats.errors, 3)
 }
+
+///|
+test "SARIF renderer exposes rules severity and source locations" {
+  let report = analyze(
+    Workspace::new([
+      SourceFile::new("docs/My Guide.md", "# Guide\n\n[Missing](missing.md)"),
+    ]),
+  )
+  let sarif = render_sarif(report)
+  assert_true(sarif.contains("\"version\": \"2.1.0\""))
+  assert_true(sarif.contains("\"semanticVersion\": \"0.4.0\""))
+  assert_true(sarif.contains("\"ruleId\":\"CMG001\""))
+  assert_true(sarif.contains("\"ruleIndex\":0"))
+  assert_true(sarif.contains("\"level\":\"error\""))
+  assert_true(sarif.contains("\"uri\":\"docs/My%20Guide.md\""))
+  assert_true(sarif.contains("\"startLine\":3"))
+}

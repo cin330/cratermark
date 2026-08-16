@@ -32,6 +32,8 @@ pub fn render_markdown_report(GraphReport) -> String
 
 pub fn render_mermaid(GraphReport) -> String
 
+pub fn render_sarif(GraphReport) -> String
+
 pub fn render_stats(GraphStats) -> String
 
 pub fn render_text(GraphReport) -> String

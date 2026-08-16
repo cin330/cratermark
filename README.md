@@ -52,7 +52,7 @@ warning CMG006 assets/unused.png
 - Unused document asset detection
 - Entry-point reachability and orphan-document analysis
 - Reverse-reference and transitive change-impact analysis
-- Mermaid, Graphviz DOT, JSON, Markdown, and terminal output
+- Mermaid, Graphviz DOT, JSON, Markdown, SARIF 2.1.0, and terminal output
 - Source file, line, and column diagnostics
 - Configurable entry points and excluded directory prefixes
 - Non-zero exit status when integrity errors are found
@@ -84,8 +84,8 @@ Relative paths are resolved from the caller's current directory. In
 ## Project commands
 
 ```text
-cratermark check <directory> [--format text|json|markdown] [--entry file]
-cratermark scan <directory> [--format text|json|markdown] [--entry file]
+cratermark check <directory> [--format text|json|markdown|sarif] [--output file] [--entry file]
+cratermark scan <directory> [--format text|json|markdown|sarif] [--output file] [--entry file]
 cratermark graph <directory> [--format mermaid|dot|json]
 cratermark affected <directory> <changed-file>
 cratermark stats <directory>
@@ -105,7 +105,13 @@ moon run cmd/cratermark affected examples/workspace reference/api.md
 
 # Emit machine-readable diagnostics and graph edges
 moon run cmd/cratermark check examples/workspace --format json
+
+# Generate a SARIF 2.1.0 file without failing on existing findings
+moon run cmd/cratermark scan . --format sarif --output cratermark.sarif
 ```
+
+`check` exits with status 1 when errors exist. `scan` renders the same report
+without failing, which allows CI to upload SARIF even when findings are present.
 
 ## Integrity rules
 
@@ -139,6 +145,17 @@ The `--entry` option overrides configured entries for one run.
 
 See [configuration details](docs/configuration.md) and the
 [rule reference](docs/rules.md).
+
+## GitHub Code Scanning
+
+SARIF results contain stable CMG rule identifiers, severity, messages, and
+repository-relative line/column locations. The included CI workflow generates
+`cratermark.sarif` and uploads it with
+`github/codeql-action/upload-sarif@v4`, allowing supported findings to appear
+as Code Scanning alerts and PR annotations.
+
+See the [SARIF and Code Scanning guide](docs/sarif.md) for standalone usage,
+workflow permissions, and fork-safety details.
 
 ## Change-impact analysis
 
@@ -193,7 +210,7 @@ Rules   Reachability  Reverse references
   \        |           /
    +-------+----------+
            v
- text / JSON / Markdown / Mermaid / DOT
+ text / JSON / Markdown / SARIF / Mermaid / DOT
 ```
 
 See [architecture](docs/architecture.md) for package boundaries.
@@ -244,7 +261,7 @@ The supported syntax boundary of that extraction layer is documented in
   appear on one source line.
 - External HTTP URLs are counted but are not fetched.
 - Exclusions are path prefixes rather than a complete glob implementation.
-- Safe automatic repair, baselines, and SARIF output are planned for later releases.
+- Safe automatic repair and issue baselines are planned for later releases.
 
 ## License
 

@@ -34,8 +34,9 @@ the new graph analyzer.
 
 The current implementation also extracts full/collapsed reference-style links
 and images plus same-line raw-HTML anchors and images. Later milestones add
-external HTTP checks, issue baselines, safe repair, SARIF, and Git-diff-aware
-incremental scans.
+external HTTP checks, issue baselines, safe repair, and Git-diff-aware
+incremental scans. SARIF 2.1.0 output and GitHub Code Scanning upload are now
+implemented.
 
 ## Technical route
 
