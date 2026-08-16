@@ -1,10 +1,12 @@
 import {
   "cin330/cratermark/src/analyzer",
+  "cin330/cratermark/src/docgraph",
   "cin330/cratermark/src/formatter",
   "cin330/cratermark/src/parser",
   "cin330/cratermark/src/renderer",
   "moonbitlang/core/env",
   "moonbitlang/x/fs",
+  "moonbitlang/x/sys",
 }
 
 pkgtype(kind: "executable")

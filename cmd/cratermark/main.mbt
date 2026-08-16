@@ -1,23 +1,23 @@
 ///|
 fn usage() -> String {
   let text =
-    #|CraterMark - structured Markdown toolkit
+    #|CraterMark - documentation graph and integrity analyzer
     #|
     #|Usage:
+    #|  cratermark check <directory> [--format text|json|markdown] [--entry file]
+    #|  cratermark scan <directory> [--format text|json|markdown] [--entry file]
+    #|  cratermark graph <directory> [--format mermaid|dot|json]
+    #|  cratermark affected <directory> <changed-file>
+    #|  cratermark stats <directory>
+    #|
+    #|Compatibility and debugging:
     #|  cratermark parse <file>
     #|  cratermark render <file> [--format html|json|markdown]
     #|  cratermark fmt <file>
-    #|  cratermark check <file>
     #|  cratermark toc <file>
-    #|  cratermark stats <file>
     #|
-    #|Commands:
-    #|  parse    Parse Markdown and print the AST as JSON
-    #|  render   Render HTML by default, or select another format
-    #|  fmt      Rewrite the file as canonical Markdown
-    #|  check    Run MD001-MD005 lint rules
-    #|  toc      Generate a Markdown table of contents
-    #|  stats    Print document statistics
+    #|Project commands scan a complete Markdown workspace, validate cross-file
+    #|links, anchors and assets, detect unreachable documents, and build a graph.
   text
 }
 
@@ -32,17 +32,17 @@ fn option_value(args : Array[String], name : String) -> String? {
 }
 
 ///|
-/// Native executables expose one launcher argument while the JavaScript
-/// backend exposes both Node and script paths. Locate the command instead of
-/// relying on a backend-specific offset.
 fn command_index(args : Array[String]) -> Int {
   for index, value in args {
-    if value == "parse" ||
+    if value == "check" ||
+      value == "scan" ||
+      value == "graph" ||
+      value == "affected" ||
+      value == "stats" ||
+      value == "parse" ||
       value == "render" ||
       value == "fmt" ||
-      value == "check" ||
-      value == "toc" ||
-      value == "stats" {
+      value == "toc" {
       return index
     }
   }
@@ -71,23 +71,67 @@ fn write_source(path : String, content : String) -> Bool {
 }
 
 ///|
-fn main {
-  let args = @env.args()
-  if args.any(fn(arg) { arg == "help" || arg == "--help" || arg == "-h" }) {
-    println(usage())
-    return
+fn render_project_report(
+  report : @docgraph.GraphReport,
+  format : String,
+) -> String {
+  match format {
+    "text" => @docgraph.render_text(report)
+    "json" => @docgraph.render_json_report(report)
+    "markdown" | "md" => @docgraph.render_markdown_report(report)
+    _ => "cratermark: unsupported report format '\{format}'\n"
   }
-  let command_at = command_index(args)
-  if command_at < 0 {
-    println(usage())
-    return
+}
+
+///|
+fn run_project_command(
+  command : String,
+  root : String,
+  args : Array[String],
+  command_at : Int,
+) -> Unit {
+  let entry = option_value(args, "--entry")
+  let workspace = match scan_workspace(root, entry) {
+    Some(value) => value
+    None => return
   }
-  if command_at + 1 >= args.length() {
-    println("cratermark: missing Markdown file\n\n\{usage()}")
-    return
+  let report = @docgraph.analyze(workspace)
+  match command {
+    "check" | "scan" => {
+      let format = option_value(args, "--format").unwrap_or("text")
+      println(render_project_report(report, format))
+      if report.stats.errors > 0 {
+        @sys.exit(1)
+      }
+    }
+    "stats" => println(@docgraph.render_stats(report.stats))
+    "graph" => {
+      let format = option_value(args, "--format").unwrap_or("mermaid")
+      match format {
+        "mermaid" | "md" => println(@docgraph.render_mermaid(report))
+        "dot" => println(@docgraph.render_dot(report))
+        "json" => println(@docgraph.render_json_report(report))
+        _ => println("cratermark: unsupported graph format '\{format}'")
+      }
+    }
+    "affected" => {
+      if command_at + 2 >= args.length() {
+        println("cratermark: affected requires <directory> <changed-file>")
+        return
+      }
+      let changed = args[command_at + 2]
+      println(@docgraph.render_impact(@docgraph.affected(report, changed)))
+    }
+    _ => ()
   }
-  let command = args[command_at]
-  let path = args[command_at + 1]
+}
+
+///|
+fn run_compatibility_command(
+  command : String,
+  path : String,
+  args : Array[String],
+) -> Unit {
   let source = match read_source(path) {
     Some(value) => value
     None => return
@@ -108,10 +152,36 @@ fn main {
       if write_source(path, @formatter.format(document)) {
         println("formatted \{path}")
       }
-    "check" => println(@analyzer.render_lint(path, @analyzer.lint(document)))
     "toc" => println(@analyzer.render_toc(document))
-    "stats" =>
-      println(@analyzer.render_stats(@analyzer.document_stats(document)))
-    _ => println("cratermark: unknown command '\{command}'\n\n\{usage()}")
+    _ => ()
+  }
+}
+
+///|
+fn main {
+  let args = @env.args()
+  if args.any(fn(arg) { arg == "help" || arg == "--help" || arg == "-h" }) {
+    println(usage())
+    return
+  }
+  let command_at = command_index(args)
+  if command_at < 0 {
+    println(usage())
+    return
+  }
+  if command_at + 1 >= args.length() {
+    println("cratermark: missing file or directory\n\n\{usage()}")
+    return
+  }
+  let command = args[command_at]
+  let path = args[command_at + 1]
+  if command == "check" ||
+    command == "scan" ||
+    command == "graph" ||
+    command == "affected" ||
+    command == "stats" {
+    run_project_command(command, path, args, command_at)
+  } else {
+    run_compatibility_command(command, path, args)
   }
 }

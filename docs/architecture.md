@@ -1,84 +1,91 @@
 # Architecture
 
-CraterMark uses a source-aware AST as the boundary between parsing and every downstream
-feature. A renderer never reads Markdown directly, and an analyzer never depends on
-parser internals.
+CraterMark separates host file-system work from the portable graph engine.
 
-## Data flow
-
-```mermaid
-flowchart TD
-  source["Markdown source"] --> block["Block parser"]
-  block --> inline["Inline parser"]
-  inline --> ast["Source-aware AST"]
-  ast --> analyzer["Analyzer"]
-  ast --> formatter["Formatter"]
-  ast --> renderer["Renderer"]
-  analyzer --> toc["TOC"]
-  analyzer --> lint["Lint"]
-  analyzer --> stats["Stats"]
-  formatter --> markdown["Markdown"]
-  renderer --> html["HTML"]
-  renderer --> json["JSON"]
-  toc --> cli["CLI"]
-  lint --> cli
-  stats --> cli
-  markdown --> cli
-  html --> cli
-  json --> cli
+```text
+Directory
+   |
+   v
+CLI workspace scanner
+   |
+   v
+Array[SourceFile] + asset paths + entries
+   |
+   v
+Heading/link extraction
+   |
+   v
+Path and anchor resolution
+   |
+   v
+Directed documentation graph
+  /          |             \
+ v           v              v
+Rules    Reachability   Reverse references
+  \          |              /
+   +---------+-------------+
+             v
+Structured GraphReport
+             |
+             v
+text / Markdown / JSON / Mermaid / DOT
 ```
 
 ## Packages
 
 ### `src/ast`
 
-Defines `Document`, `Block`, `Inline`, `ListItem`, and `Position`. Public enum
-constructors make the AST usable by third-party packages. `inline_plain_text` and
-`slugify` are shared semantic helpers.
+The source-aware block and inline model retained from v0.1. Positions are
+one-based and are propagated into project diagnostics.
 
 ### `src/parser`
 
-The block parser operates line-by-line and recognizes headings, fenced code, rules,
-quotes, and lists before falling back to paragraphs. Block text is delegated to the
-inline parser, which recognizes strong text, emphasis, code, links, and images.
+A focused Markdown extraction layer. It recognizes the headings, links, images,
+and common block containers needed by the graph engine. CraterMark does not
+claim full CommonMark compatibility.
 
-The parser normalizes CRLF and CR line endings to LF. Positions are one-based and use
-a half-open end column.
+### `src/docgraph`
 
-### `src/renderer`
+The v0.2 product core:
 
-Contains independent HTML, JSON, and Markdown renderers. HTML output escapes text and
-attributes and replaces script-like URLs with `#`. JSON is stable and includes every
-node's position. Markdown output is canonical and powers formatting.
+- `types.mbt`: portable workspace, node, edge, diagnostic, statistics, and
+  impact types.
+- `path.mbt`: cross-platform repository-path normalization, target splitting,
+  root-escape detection, and target classification.
+- `extract.mbt`: heading anchors and link/resource references.
+- `analyze.mbt`: resolution, integrity rules, reachability, and reverse-impact
+  traversal.
+- `render.mbt`: terminal, Markdown, JSON, Mermaid, and DOT output.
 
-### `src/analyzer`
-
-Traverses the AST without reparsing source. It exposes TOC entries, statistics, and a
-lint registry. The five initial lint checks return structured `LintIssue` values before
-the CLI decides how to display them.
-
-### `src/formatter`
-
-A deliberately thin transformation boundary. Today it emits canonical Markdown from
-the AST; future transformations can be inserted here without changing the parser or
-CLI.
+The package performs no host I/O. Tests construct in-memory workspaces and run
+on the WASM backend.
 
 ### `cmd/cratermark`
 
-Owns file I/O, arguments, and human-readable output. It does no Markdown processing
-itself. Argument discovery accommodates both native executables and the JavaScript
-backend's two launcher arguments.
+Owns recursive file discovery, `cratermark.toml`, command dispatch, host I/O,
+and process exit status. It supplies normalized relative paths to
+`src/docgraph`.
 
-## Extension points
+### Compatibility packages
 
-- Add a syntax feature vertically: AST node, parser, all renderers, then tests.
-- Add an analyzer by walking `Document.children`; do not inspect source with regexes.
-- Add a renderer without changing parser behavior.
-- Add lint metadata to `lint_rules()` and return structured issues from `lint()`.
+`src/renderer`, `src/formatter`, and `src/analyzer` preserve the v0.1
+single-file commands. New project-level behavior should be added to
+`src/docgraph`, not to those compatibility layers.
 
-## Deliberate limits
+## Graph semantics
 
-This parser is not a full CommonMark implementation. Nested lists, lazy block-quote
-continuations, reference links, raw HTML blocks, Setext headings, and complex escaping
-are deferred. Keeping these boundaries explicit prevents subtle partial compatibility
-from becoming an undocumented contract.
+Each Markdown file is a document node. Valid relative Markdown links produce
+document edges. Referenced images and attachments produce asset edges. External
+URLs are counted but do not produce repository reachability edges.
+
+Configured entries seed a breadth-first traversal. Any document outside the
+resulting reachable set receives CMG004. Reverse traversal powers the
+`affected` command.
+
+## Determinism
+
+- Repository paths always use forward slashes.
+- Directory entries are sorted before traversal.
+- Heading anchor suffixes are generated in source order.
+- Diagnostics and graph edges follow document and source order.
+- No network request is needed for the v0.2 analyzer.

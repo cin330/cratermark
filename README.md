@@ -1,28 +1,60 @@
 # CraterMark
 
-> A structured Markdown parsing, analysis, and rendering toolkit written in MoonBit.
+> A MoonBit-native documentation graph and integrity analyzer.
 
-CraterMark turns Markdown into a source-aware AST, then lets independent renderers,
-analyzers, and transformers consume that structure. It is intentionally a focused
-v0.1 implementation rather than a claim of complete CommonMark compatibility.
+CraterMark scans a complete Markdown workspace, resolves links across files,
+builds a dependency graph, and reports structural problems before readers find
+them. It is designed for documentation repositories, open-source projects,
+knowledge bases, and CI pipelines.
 
-## Features
+CraterMark is not trying to be another full CommonMark implementation. Its
+source-aware Markdown parser is an extraction layer; the product is the
+project-level graph, integrity rules, and change-impact analysis built on top.
 
-- [x] Block and inline Markdown parser
-- [x] Structured AST with one-based source positions
-- [x] HTML, JSON, and normalized Markdown renderers
-- [x] Table-of-contents generator
-- [x] Document and code-language statistics
-- [x] Extensible lint rule registry with MD001-MD005
-- [x] `parse`, `render`, `fmt`, `check`, `toc`, and `stats` commands
-- [ ] GitHub-style tables, task lists, strikethrough, and footnotes
-- [ ] Static site generator and plugin API
+## What it catches
 
-## Supported syntax
+Given this project:
 
-CraterMark v0.1 supports ATX headings, paragraphs, fenced code blocks, block quotes,
-ordered and unordered lists, horizontal rules, strong text, emphasis, inline code,
-links, and images. See [docs/syntax.md](docs/syntax.md) for the exact boundary.
+```text
+README.md
+docs/
+  install.md
+  config.md
+  orphan.md
+assets/
+  logo.svg
+  unused.png
+```
+
+CraterMark can report:
+
+```text
+error CMG001 README.md:12:1
+  Document target 'docs/missing.md' does not exist.
+
+error CMG002 README.md:18:1
+  Anchor '#server' does not exist in 'docs/config.md'.
+
+warning CMG004 docs/orphan.md:1:1
+  Document is unreachable from the configured entry points.
+
+warning CMG006 assets/unused.png
+  Document asset is not referenced by any Markdown file.
+```
+
+## Core capabilities
+
+- Recursive Markdown workspace discovery
+- Cross-file link and heading-anchor resolution
+- Windows/Linux path-case mismatch detection
+- Missing image and attachment detection
+- Unused document asset detection
+- Entry-point reachability and orphan-document analysis
+- Reverse-reference and transitive change-impact analysis
+- Mermaid, Graphviz DOT, JSON, Markdown, and terminal output
+- Source file, line, and column diagnostics
+- Configurable entry points and excluded directory prefixes
+- Non-zero exit status when integrity errors are found
 
 ## Quick start
 
@@ -31,131 +63,184 @@ then run:
 
 ```bash
 moon update
-moon check
 moon test --target wasm
-moon run cmd/cratermark render examples/basic.md
+moon run cmd/cratermark check .
+moon run cmd/cratermark graph . --format mermaid
 ```
 
-The default target is native. A working C compiler is required to link the native
-CLI because its file-system dependency uses a small C stub. You can instead use the
-JavaScript target when Node.js is available:
-
-```bash
-moon run --target js cmd/cratermark render examples/basic.md
-```
-
-On Windows, `cratermark.cmd` automatically finds Node.js from `PATH` and falls back to
-the Node.js runtime bundled with Codex Desktop:
+On Windows, the repository launcher automatically finds Node.js and can be
+called from any directory:
 
 ```bat
-cratermark.cmd render examples\basic.md
-cratermark.cmd parse examples\demo.md
-cratermark.cmd check tests\fixtures\lint.md
+cratermark.cmd check C:\path\to\project
+cratermark.cmd graph C:\path\to\project --format dot
+cratermark.cmd affected C:\path\to\project docs\api.md
 ```
 
-The launcher may be called from any directory. Relative Markdown paths are resolved
-from the caller's current directory, while the CraterMark project is built from its own
-directory internally.
+Relative paths are resolved from the caller's current directory. In
+`cmd.exe`, use `REM` for comments; `#` is not a CMD comment marker.
 
-When using `cmd.exe`, do not paste lines beginning with `#`; unlike PowerShell and
-Bash, `cmd.exe` does not treat `#` as a comment. Use `REM` for comments instead.
-
-## CLI
+## Project commands
 
 ```text
-cratermark parse <file>
-cratermark render <file> [--format html|json|markdown]
-cratermark fmt <file>
-cratermark check <file>
-cratermark toc <file>
-cratermark stats <file>
+cratermark check <directory> [--format text|json|markdown] [--entry file]
+cratermark scan <directory> [--format text|json|markdown] [--entry file]
+cratermark graph <directory> [--format mermaid|dot|json]
+cratermark affected <directory> <changed-file>
+cratermark stats <directory>
 ```
 
 Examples:
 
 ```bash
-# Inspect the AST as JSON
-moon run cmd/cratermark parse README.md
+# Validate a project and fail when errors exist
+moon run cmd/cratermark check examples/workspace
 
-# Render HTML or canonical Markdown
-moon run cmd/cratermark render README.md
-moon run cmd/cratermark render README.md --format markdown
+# Export a diagram
+moon run cmd/cratermark graph examples/workspace --format mermaid
 
-# Analyze a document
-moon run cmd/cratermark toc README.md
-moon run cmd/cratermark stats README.md
-moon run cmd/cratermark check README.md
+# Find every document affected by an API-page change
+moon run cmd/cratermark affected examples/workspace reference/api.md
 
-# Rewrite a file in place
-moon run cmd/cratermark fmt README.md
+# Emit machine-readable diagnostics and graph edges
+moon run cmd/cratermark check examples/workspace --format json
 ```
 
-## Lint rules
+## Integrity rules
 
 | Code | Severity | Rule |
 | --- | --- | --- |
-| MD001 | warning | Heading level jumps by more than one |
-| MD002 | warning | Duplicate heading text |
-| MD003 | warning | Image has empty alternative text |
-| MD004 | warning | Link destination is empty |
-| MD005 | error | Internal anchor does not match a heading |
+| CMG001 | error | Linked Markdown document does not exist |
+| CMG002 | error | Heading anchor does not exist in the target document |
+| CMG003 | error | Document or resource path has the wrong letter case |
+| CMG004 | warning | Document is unreachable from configured entry points |
+| CMG005 | error | Referenced image or attachment does not exist |
+| CMG006 | warning | Document asset is not referenced |
+| CMG007 | warning | Duplicate heading required a generated anchor suffix |
+| CMG008 | error | Link escapes the configured workspace root |
+| CMG010 | error | Link uses an unsafe URL scheme |
 
-Diagnostics include the source path, line, and column retained in the AST.
+Diagnostics are structured values before they are rendered, so other MoonBit
+packages can consume them without parsing terminal output.
+
+## Configuration
+
+Create `cratermark.toml` in the directory being scanned:
+
+```toml
+entries = ["README.md", "docs/index.md"]
+exclude = ["tests/fixtures", "vendor/docs"]
+```
+
+`entries` define graph roots. Documents not reachable from a root receive
+CMG004. `exclude` values are repository-relative directory or file prefixes.
+The `--entry` option overrides configured entries for one run.
+
+See [configuration details](docs/configuration.md) and the
+[rule reference](docs/rules.md).
+
+## Change-impact analysis
+
+CraterMark builds reverse references as well as forward links:
+
+```text
+Changed:
+  reference/api.md
+
+Directly affected:
+  guide/install.md
+
+Transitively affected:
+  README.md
+```
+
+This is the documentation equivalent of “find references”: maintainers can
+rename, move, or delete a page after seeing every dependent document.
+
+## Library use
+
+The graph engine is pure and receives in-memory inputs, which keeps it portable
+to WASM and easy to test:
+
+```moonbit
+let workspace = @docgraph.Workspace::new([
+  @docgraph.SourceFile::new("README.md", "# Home\n\n[Guide](guide.md)"),
+  @docgraph.SourceFile::new("guide.md", "# Guide"),
+])
+let report = @docgraph.analyze(workspace)
+let diagram = @docgraph.render_mermaid(report)
+```
+
+File discovery is deliberately isolated in the CLI package.
 
 ## Architecture
 
 ```text
-Markdown source
+Workspace scanner
       |
       v
-Block Parser ---> Inline Parser
-      |                |
-      +-------+--------+
-              v
-        Source-aware AST
-         /     |      \
-        v      v       v
-   Analyzer Formatter Renderer
-   TOC/Lint   Markdown HTML/JSON
-         \      |      /
-          +-----+-----+
-                v
-               CLI
+Markdown heading/link extractor
+      |
+      v
+Path + anchor resolver
+      |
+      v
+Directed documentation graph
+   /       |          \
+  v        v           v
+Rules   Reachability  Reverse references
+  \        |           /
+   +-------+----------+
+           v
+ text / JSON / Markdown / Mermaid / DOT
 ```
 
-Each directory below is a separate MoonBit package:
+See [architecture](docs/architecture.md) for package boundaries.
+
+## Ecosystem boundary
+
+| Tool category | Primary question |
+| --- | --- |
+| Markdown parser/renderers | What syntax is present and how should it render? |
+| Outline readers | What headings exist inside one file? |
+| Documentation-readiness checkers | Are README, API comments, metadata, and CI present? |
+| Static-site generators | How should Markdown become a website? |
+| **CraterMark** | **Are all documents, anchors, and assets correctly connected across the repository?** |
+
+The distinction is intentional: CraterMark operates on relationships between
+files rather than competing on CommonMark completeness or website themes.
+
+## Compatibility commands
+
+The v0.1 single-file commands remain available for debugging and migration, but
+they are no longer the main project direction:
 
 ```text
-src/ast        shared document model and positions
-src/parser     block and inline parsing
-src/renderer   HTML, JSON, and Markdown output
-src/analyzer   TOC, statistics, and lint rules
-src/formatter  canonical Markdown transformation
-cmd/cratermark    file I/O and command dispatch
+cratermark parse <file>
+cratermark render <file> [--format html|json|markdown]
+cratermark fmt <file>
+cratermark toc <file>
 ```
 
-For design details, see [docs/architecture.md](docs/architecture.md). For contributor
-commands and test layout, see [docs/development.md](docs/development.md).
+The supported syntax boundary of that extraction layer is documented in
+[syntax.md](docs/syntax.md).
 
-## Library use
+## Examples and project documents
 
-Packages can import only the layers they need:
+- [Healthy multi-file workspace](examples/workspace/README.md)
+- [Basic Markdown input](examples/basic.md)
+- [Parser demonstration](examples/demo.md)
+- [Complex input](examples/complex.md)
+- [Competition project proposal](docs/project-proposal.md)
+- [Development guide](docs/development.md)
+- [Changelog](CHANGELOG.md)
 
-```moonbit
-let document = @parser.parse("# Hello\n\nWelcome to **CraterMark**.")
-let html = @renderer.render_html(document)
-let issues = @analyzer.lint(document)
-```
+## Current limitations
 
-Package dependencies are declared in `moon.pkg`, following normal MoonBit package
-rules.
-
-## Roadmap
-
-- **v0.2:** tables, task lists, strikethrough, footnotes, external link checking
-- **v0.3:** static site generation, navigation, search index, and themes
-- **v0.4:** MoonBit API documentation generation
-- **v1.0:** plugin API, WASM embedding, and documentation extensions
+- Reference-style Markdown links and raw-HTML links are not extracted yet.
+- External HTTP URLs are counted but are not fetched.
+- Exclusions are path prefixes rather than a complete glob implementation.
+- Safe automatic repair, baselines, and SARIF output are planned for later releases.
 
 ## License
 

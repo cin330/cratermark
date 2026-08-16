@@ -24,3 +24,5 @@ jobs:
           moon test --target native
       - name: Build native CLI
         run: moon build --target native
+      - name: Check repository documentation graph
+        run: moon run cmd/cratermark check .
