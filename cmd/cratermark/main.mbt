@@ -4,8 +4,8 @@ fn usage() -> String {
     #|CraterMark - documentation graph and integrity analyzer
     #|
     #|Usage:
-    #|  cratermark check <directory> [--format text|json|markdown] [--entry file]
-    #|  cratermark scan <directory> [--format text|json|markdown] [--entry file]
+    #|  cratermark check <directory> [--format text|json|markdown|sarif] [--output file] [--entry file]
+    #|  cratermark scan <directory> [--format text|json|markdown|sarif] [--output file] [--entry file]
     #|  cratermark graph <directory> [--format mermaid|dot|json]
     #|  cratermark affected <directory> <changed-file>
     #|  cratermark stats <directory>
@@ -79,7 +79,25 @@ fn render_project_report(
     "text" => @docgraph.render_text(report)
     "json" => @docgraph.render_json_report(report)
     "markdown" | "md" => @docgraph.render_markdown_report(report)
+    "sarif" => @docgraph.render_sarif(report)
     _ => "cratermark: unsupported report format '\{format}'\n"
+  }
+}
+
+///|
+fn emit_project_report(content : String, args : Array[String]) -> Bool {
+  match option_value(args, "--output") {
+    Some(path) => {
+      if !write_source(path, content) {
+        return false
+      }
+      println("wrote \{path}")
+      true
+    }
+    None => {
+      println(content)
+      true
+    }
   }
 }
 
@@ -99,8 +117,14 @@ fn run_project_command(
   match command {
     "check" | "scan" => {
       let format = option_value(args, "--format").unwrap_or("text")
-      println(render_project_report(report, format))
-      if report.stats.errors > 0 {
+      let emitted = emit_project_report(
+        render_project_report(report, format),
+        args,
+      )
+      if !emitted {
+        @sys.exit(2)
+      }
+      if command == "check" && report.stats.errors > 0 {
         @sys.exit(1)
       }
     }

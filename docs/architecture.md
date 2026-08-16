@@ -28,7 +28,7 @@ Rules    Reachability   Reverse references
 Structured GraphReport
              |
              v
-text / Markdown / JSON / Mermaid / DOT
+text / Markdown / JSON / SARIF / Mermaid / DOT
 ```
 
 ## Packages
@@ -58,6 +58,8 @@ The v0.2 product core:
 - `analyze.mbt`: resolution, integrity rules, reachability, and reverse-impact
   traversal.
 - `render.mbt`: terminal, Markdown, JSON, Mermaid, and DOT output.
+- `sarif.mbt`: SARIF 2.1.0 rules, results, severity, and source locations for
+  GitHub Code Scanning integration.
 
 The package performs no host I/O. Tests construct in-memory workspaces and run
 on the WASM backend.

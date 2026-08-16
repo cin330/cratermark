@@ -7,8 +7,11 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install MoonBit
         run: |
           curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
@@ -26,3 +29,11 @@ jobs:
         run: moon build --target native
       - name: Check repository documentation graph
         run: moon run cmd/cratermark check .
+      - name: Generate CraterMark SARIF
+        run: moon run cmd/cratermark scan . --format sarif --output cratermark.sarif
+      - name: Upload CraterMark results to code scanning
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: cratermark.sarif
+          category: cratermark/documentation

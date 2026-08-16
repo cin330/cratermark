@@ -2,6 +2,15 @@
 
 All notable changes to CraterMark are documented here.
 
+## 0.4.0 - 2026-08-16
+
+- Add GitHub-compatible SARIF 2.1.0 output with CMG rule metadata, severity,
+  messages, target properties, and repository-relative source locations.
+- Add `--output` for project reports and make `scan` non-failing so CI can
+  retain and upload findings while `check` remains a quality gate.
+- Upload generated SARIF through GitHub Actions with fork-safe permissions.
+- Add SARIF regression coverage and a dedicated integration guide.
+
 ## 0.3.0 - 2026-08-16
 
 - Extract full and collapsed reference-style Markdown links.

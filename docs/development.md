@@ -25,6 +25,7 @@ CI additionally runs native tests and builds the native executable.
 moon run cmd/cratermark check examples/workspace
 moon run cmd/cratermark graph examples/workspace --format mermaid
 moon run cmd/cratermark affected examples/workspace reference/api.md
+moon run cmd/cratermark scan . --format sarif --output cratermark.sarif
 ```
 
 On Windows without a C compiler:
