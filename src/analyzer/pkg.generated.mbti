@@ -1,0 +1,73 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "cin330/cratermark/src/analyzer"
+
+import {
+  "cin330/cratermark/src/ast",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn document_stats(@ast.Document) -> DocumentStats
+
+pub fn lint(@ast.Document) -> Array[LintIssue]
+
+pub fn lint_rules() -> Array[LintRule]
+
+pub fn render_lint(String, Array[LintIssue]) -> String
+
+pub fn render_stats(DocumentStats) -> String
+
+pub fn render_toc(@ast.Document) -> String
+
+pub fn severity_name(Severity) -> String
+
+pub fn table_of_contents(@ast.Document) -> Array[TocEntry]
+
+// Errors
+
+// Types and methods
+pub(all) struct CodeLanguage {
+  language : String
+  count : Int
+} derive(Eq, @debug.Debug)
+
+pub(all) struct DocumentStats {
+  lines : Int
+  words : Int
+  headings : Int
+  paragraphs : Int
+  links : Int
+  images : Int
+  lists : Int
+  code_blocks : Int
+  code_languages : Array[CodeLanguage]
+} derive(Eq, @debug.Debug)
+
+pub(all) struct LintIssue {
+  code : String
+  severity : Severity
+  message : String
+  position : @ast.Position
+} derive(Eq, @debug.Debug)
+
+pub(all) struct LintRule {
+  code : String
+  name : String
+  severity : Severity
+} derive(Eq, @debug.Debug)
+
+pub(all) enum Severity {
+  Warning
+  Error
+} derive(Eq, @debug.Debug)
+
+pub(all) struct TocEntry {
+  level : Int
+  title : String
+  anchor : String
+  position : @ast.Position
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits

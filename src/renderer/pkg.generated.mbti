@@ -1,0 +1,21 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "cin330/cratermark/src/renderer"
+
+import {
+  "cin330/cratermark/src/ast",
+}
+
+// Values
+pub fn render_html(@ast.Document) -> String
+
+pub fn render_json(@ast.Document, pretty? : Bool) -> String
+
+pub fn render_markdown(@ast.Document) -> String
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

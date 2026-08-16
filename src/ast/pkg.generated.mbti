@@ -1,0 +1,58 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "cin330/cratermark/src/ast"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn inline_plain_text(Array[Inline]) -> String
+
+pub fn slugify(String) -> String
+
+// Errors
+
+// Types and methods
+pub(all) enum Block {
+  Heading(Int, Array[Inline], Position)
+  Paragraph(Array[Inline], Position)
+  CodeBlock(String, String, Position)
+  BlockQuote(Array[Block], Position)
+  List(Bool, Int, Array[ListItem], Position)
+  HorizontalRule(Position)
+} derive(Eq, @debug.Debug)
+pub fn Block::position(Self) -> Position
+
+pub(all) struct Document {
+  children : Array[Block]
+  source : String
+} derive(Eq, @debug.Debug)
+pub fn Document::new(Array[Block], String) -> Self
+
+pub(all) enum Inline {
+  Text(String, Position)
+  Strong(Array[Inline], Position)
+  Emphasis(Array[Inline], Position)
+  InlineCode(String, Position)
+  Link(Array[Inline], String, Position)
+  Image(String, String, Position)
+} derive(Eq, @debug.Debug)
+pub fn Inline::position(Self) -> Position
+
+pub(all) struct ListItem {
+  children : Array[Block]
+  position : Position
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Position {
+  start_line : Int
+  start_column : Int
+  end_line : Int
+  end_column : Int
+} derive(Eq, @debug.Debug)
+pub fn Position::line(Int, Int) -> Self
+pub fn Position::unknown() -> Self
+
+// Type aliases
+
+// Traits

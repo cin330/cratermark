@@ -1,0 +1,10 @@
+_build/
+target/
+.mooncakes/
+.moonagent/
+.DS_Store
+*.exe
+*.wasm
+*.wat
+*.js
+/README.html
