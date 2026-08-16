@@ -251,6 +251,23 @@ test "supplemental links participate in integrity diagnostics" {
 }
 
 ///|
+test "undefined reference-style links and images are errors" {
+  let report = analyze(
+    Workspace::new([
+      SourceFile::new(
+        "README.md", "# Home\n\n[Missing guide][guide]\n\n![Missing logo][logo]",
+      ),
+    ]),
+  )
+  assert_true(has_code(report, "CMG009"))
+  assert_eq(report.stats.errors, 2)
+  assert_eq(report.diagnostics[0].target, "guide")
+  assert_eq(report.diagnostics[0].line, 3)
+  assert_eq(report.diagnostics[1].target, "logo")
+  assert_eq(report.diagnostics[1].line, 5)
+}
+
+///|
 test "SARIF renderer exposes rules severity and source locations" {
   let report = analyze(
     Workspace::new([
@@ -259,7 +276,7 @@ test "SARIF renderer exposes rules severity and source locations" {
   )
   let sarif = render_sarif(report)
   assert_true(sarif.contains("\"version\": \"2.1.0\""))
-  assert_true(sarif.contains("\"semanticVersion\": \"0.4.0\""))
+  assert_true(sarif.contains("\"semanticVersion\": \"0.4.1\""))
   assert_true(sarif.contains("\"ruleId\":\"CMG001\""))
   assert_true(sarif.contains("\"ruleIndex\":0"))
   assert_true(sarif.contains("\"level\":\"error\""))

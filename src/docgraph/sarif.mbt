@@ -58,6 +58,12 @@ fn sarif_rules() -> Array[SarifRule] {
       level: "error",
     },
     {
+      id: "CMG009",
+      name: "undefinedReference",
+      description: "Reference-style link or image has no matching definition.",
+      level: "error",
+    },
+    {
       id: "CMG010",
       name: "unsafeUrlScheme",
       description: "Link uses an unsafe URL scheme.",
@@ -98,7 +104,7 @@ pub fn render_sarif(report : GraphReport) -> String {
   out.write_string("  \"runs\": [\n    {\n")
   out.write_string("      \"tool\": {\n        \"driver\": {\n")
   out.write_string("          \"name\": \"CraterMark\",\n")
-  out.write_string("          \"semanticVersion\": \"0.4.0\",\n")
+  out.write_string("          \"semanticVersion\": \"0.4.1\",\n")
   out.write_string(
     "          \"informationUri\": \"https://github.com/cin330/cratermark\",\n",
   )

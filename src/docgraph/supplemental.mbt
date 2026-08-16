@@ -153,6 +153,7 @@ fn collect_reference_links(
   line_number : Int,
   definitions : Array[ReferenceDefinition],
   links : Array[LinkRef],
+  diagnostics : Array[Diagnostic],
 ) -> Unit {
   if parse_reference_definition(line_text) is Some(_) {
     return
@@ -196,7 +197,18 @@ fn collect_reference_links(
           index + 1,
           links,
         )
-      None => ()
+      None => {
+        let reference_id = normalize_reference_id(id)
+        diagnostics.push({
+          code: "CMG009",
+          severity: Error,
+          file: source,
+          line: line_number,
+          column: index + 1,
+          message: "Reference definition '[\{reference_id}]' does not exist.",
+          target: reference_id,
+        })
+      }
     }
     index = reference_end + 1
   }
@@ -321,6 +333,7 @@ fn collect_supplemental_links(
   source : String,
   content : String,
   links : Array[LinkRef],
+  diagnostics : Array[Diagnostic],
 ) -> Unit {
   let definitions = collect_reference_definitions(content)
   let mut fenced = false
@@ -334,7 +347,14 @@ fn collect_supplemental_links(
     if fenced || trimmed.has_prefix("<!--") {
       continue
     }
-    collect_reference_links(source, line, line_index + 1, definitions, links)
+    collect_reference_links(
+      source,
+      line,
+      line_index + 1,
+      definitions,
+      links,
+      diagnostics,
+    )
     collect_html_links(source, line, line_index + 1, links)
   }
 }

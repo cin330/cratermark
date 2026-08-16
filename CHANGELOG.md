@@ -2,6 +2,13 @@
 
 All notable changes to CraterMark are documented here.
 
+## 0.4.1 - 2026-08-16
+
+- Fix a false negative where undefined reference-style links and images were
+  silently ignored.
+- Add CMG009 diagnostics with source positions, reference identifiers, SARIF
+  rule metadata, regression tests, and a broken-workspace fixture.
+
 ## 0.4.0 - 2026-08-16
 
 - Add GitHub-compatible SARIF 2.1.0 output with CMG rule metadata, severity,

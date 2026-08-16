@@ -171,10 +171,13 @@ pub fn analyze(workspace : Workspace) -> GraphReport {
   let links : Array[LinkRef] = []
   let diagnostics : Array[Diagnostic] = []
   for source in workspace.documents {
-    let (document, extracted) = extract_document(source)
+    let (document, extracted, extraction_diagnostics) = extract_document(source)
     documents.push(document)
     for link in extracted {
       links.push(link)
+    }
+    for item in extraction_diagnostics {
+      diagnostics.push(item)
     }
   }
   for document in documents {

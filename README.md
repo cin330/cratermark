@@ -125,6 +125,7 @@ without failing, which allows CI to upload SARIF even when findings are present.
 | CMG006 | warning | Document asset is not referenced |
 | CMG007 | warning | Duplicate heading required a generated anchor suffix |
 | CMG008 | error | Link escapes the configured workspace root |
+| CMG009 | error | Reference-style link or image has no matching definition |
 | CMG010 | error | Link uses an unsafe URL scheme |
 
 Diagnostics are structured values before they are rendered, so other MoonBit
