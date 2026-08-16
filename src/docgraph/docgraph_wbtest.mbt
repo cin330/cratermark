@@ -134,3 +134,118 @@ test "machine-readable and graph renderers expose edges" {
   assert_true(mermaid.contains("graph TD"))
   assert_true(mermaid.contains("n0 --> n1"))
 }
+
+///|
+test "reference-style links and images join the workspace graph" {
+  let workspace = Workspace::new(
+    [
+      SourceFile::new(
+        "README.md",
+        (
+          #|# Home
+          #|
+          #|Read the [installation guide][guide].
+          #|
+          #|![Project logo][logo]
+          #|
+          #|[guide]: docs/guide.md#install "Install guide"
+          #|[logo]: <assets/logo.svg>
+          #|,
+        ),
+      ),
+      SourceFile::new("docs/guide.md", "# Guide\n\n## Install"),
+    ],
+    assets=["assets/logo.svg"],
+    entries=["README.md"],
+  )
+  let report = analyze(workspace)
+  assert_eq(report.diagnostics.length(), 0)
+  assert_eq(report.stats.internal_links, 1)
+  assert_eq(report.stats.asset_links, 1)
+  assert_eq(report.stats.reachable_documents, 2)
+}
+
+///|
+test "collapsed reference labels are case insensitive" {
+  let report = analyze(
+    Workspace::new([
+      SourceFile::new("README.md", "# Home\n\n[Guide][]\n\n[ guide ]: guide.md"),
+      SourceFile::new("guide.md", "# Guide"),
+    ]),
+  )
+  assert_eq(report.diagnostics.length(), 0)
+  assert_eq(report.stats.internal_links, 1)
+}
+
+///|
+test "HTML anchors and images join the workspace graph" {
+  let workspace = Workspace::new(
+    [
+      SourceFile::new(
+        "README.md",
+        (
+          #|# Home
+          #|
+          #|<a href="docs/guide.md#install">Install guide</a>
+          #|<img src='assets/logo.svg' alt='Project logo'>
+          #|,
+        ),
+      ),
+      SourceFile::new("docs/guide.md", "# Guide\n\n## Install"),
+    ],
+    assets=["assets/logo.svg"],
+  )
+  let report = analyze(workspace)
+  assert_eq(report.diagnostics.length(), 0)
+  assert_eq(report.stats.internal_links, 1)
+  assert_eq(report.stats.asset_links, 1)
+  assert_eq(report.edges.length(), 2)
+}
+
+///|
+test "supplemental syntax inside code fences is ignored" {
+  let report = analyze(
+    Workspace::new([
+      SourceFile::new(
+        "README.md",
+        (
+          #|# Home
+          #|
+          #|```markdown
+          #|[Missing][guide]
+          #|<img src="missing.png">
+          #|[guide]: missing.md
+          #|```
+          #|,
+        ),
+      ),
+    ]),
+  )
+  assert_eq(report.diagnostics.length(), 0)
+  assert_eq(report.links.length(), 0)
+}
+
+///|
+test "supplemental links participate in integrity diagnostics" {
+  let report = analyze(
+    Workspace::new([
+      SourceFile::new(
+        "README.md",
+        (
+          #|# Home
+          #|
+          #|[Missing guide][guide]
+          #|<a href=javascript:alert>Unsafe</a>
+          #|<img src="assets/missing.svg" alt="Missing">
+          #|
+          #|[guide]: docs/missing.md
+          #|,
+        ),
+      ),
+    ]),
+  )
+  assert_true(has_code(report, "CMG001"))
+  assert_true(has_code(report, "CMG005"))
+  assert_true(has_code(report, "CMG010"))
+  assert_eq(report.stats.errors, 3)
+}
