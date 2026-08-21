@@ -12,7 +12,7 @@ moon update
 moon fmt
 moon info
 moon check -d
-moon test --target wasm
+moon test --target wasm -d
 moon build --target js
 moon run cmd/cratermark check .
 ```
@@ -37,8 +37,12 @@ cratermark.cmd graph examples\workspace --format dot
 
 ## Tests
 
-MoonBit tests are colocated with packages in `*_wbtest.mbt` files. The
-`src/docgraph` tests use in-memory workspaces and cover:
+MoonBit tests are colocated with packages. White-box tests live in
+`*_wbtest.mbt` files and may touch package internals; black-box tests live in
+`*_test.mbt` files and use only the public `@docgraph` API, which is what a
+consuming project sees. Both run under `moon test`.
+
+The `src/docgraph` tests use in-memory workspaces and cover:
 
 1. Cross-platform path normalization.
 2. Healthy document, anchor, and asset resolution.
@@ -49,6 +53,9 @@ MoonBit tests are colocated with packages in `*_wbtest.mbt` files. The
 7. Stable duplicate-heading anchors.
 8. Direct and transitive impact analysis.
 9. Machine-readable and graph output.
+10. Full, collapsed, and shortcut reference links and images.
+11. Raw-HTML tags that span several lines.
+12. Code fences and multiline HTML comments that must not produce links.
 
 Intentionally broken CLI fixtures live below `tests/fixtures` and are excluded
 by the repository `cratermark.toml`.

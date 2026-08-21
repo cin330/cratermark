@@ -18,18 +18,19 @@ CraterMark goal.
 | Inline code | `` `code` `` | Single backtick delimiter |
 | Link | <code>&#91;label&#93;(url)</code> | Inline label content is parsed |
 | Image | <code>!&#91;alt&#93;(url)</code> | Empty alt text is linted |
-| Reference link | <code>&#91;label&#93;&#91;id&#93;</code> | Full and collapsed references feed the project graph |
+| Reference link | <code>&#91;label&#93;&#91;id&#93;</code> | Full, collapsed, and shortcut references feed the project graph |
 | Reference image | <code>!&#91;alt&#93;&#91;id&#93;</code> | Definition targets are resolved across the document |
-| HTML anchor | `<a href="guide.md">` | Same-line opening tags feed the project graph |
+| HTML anchor | `<a href="guide.md">` | Opening tags may span several lines |
 | HTML image | `<img src="logo.svg">` | Quoted and unquoted attributes are recognized |
+| HTML comment | `<!-- ... -->` | Multiline comments are masked out before extraction |
 
 ## Not yet supported
 
 - Nested and loose lists
 - Indented code blocks
 - Setext headings
-- Multiline raw HTML tags and full raw HTML block semantics
-- Shortcut-only reference links such as `[guide]`
+- Full raw HTML block semantics beyond `<a>` and `<img>` targets
+- Nested link labels such as `[see [inner]][id]`
 - Escaped delimiters and multiline inline constructs
 - Tables, task lists, strikethrough, and footnotes
 - Full CommonMark delimiter precedence

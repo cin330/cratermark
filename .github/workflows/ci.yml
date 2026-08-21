@@ -6,7 +6,11 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
     permissions:
       contents: read
       security-events: write
@@ -21,18 +25,28 @@ jobs:
           moon update
           moon fmt --check
           moon check -d
+      - name: Verify generated interfaces are current
+        run: |
+          moon info
+          git diff --exit-code
       - name: Test library backends
         run: |
-          moon test --target wasm
-          moon test --target native
+          moon test --target wasm -d
+          moon test --target native -d
       - name: Build native CLI
         run: moon build --target native
       - name: Check repository documentation graph
         run: moon run cmd/cratermark check .
+      - name: Check example workspace
+        run: moon run cmd/cratermark check examples/workspace
       - name: Generate CraterMark SARIF
+        if: matrix.os == 'ubuntu-latest'
         run: moon run cmd/cratermark scan . --format sarif --output cratermark.sarif
       - name: Upload CraterMark results to code scanning
-        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        if: |
+          matrix.os == 'ubuntu-latest' &&
+          (github.event_name != 'pull_request' ||
+           github.event.pull_request.head.repo.full_name == github.repository)
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: cratermark.sarif
