@@ -45,7 +45,8 @@ warning CMG006 assets/unused.png
 ## Core capabilities
 
 - Recursive Markdown workspace discovery
-- Inline, reference-style, and raw-HTML link/image extraction
+- Inline, reference-style (full, collapsed, and shortcut), and raw-HTML
+  link/image extraction, including tags that span several lines
 - Cross-file link and heading-anchor resolution
 - Windows/Linux path-case mismatch detection
 - Missing image and attachment detection
@@ -252,18 +253,23 @@ The supported syntax boundary of that extraction layer is documented in
 - [Complex input](examples/complex.md)
 - [Competition project proposal](docs/project-proposal.md)
 - [Development guide](docs/development.md)
+- [Third-party notes and licenses](docs/third-party.md)
 - [Changelog](CHANGELOG.md)
 
 ## Current limitations
 
-- Reference-style extraction supports full and collapsed labels; shortcut-only
-  references such as `[guide]` are not interpreted as links.
-- Raw-HTML extraction currently requires each `<a>` or `<img>` opening tag to
-  appear on one source line.
 - External HTTP URLs are counted but are not fetched.
 - Exclusions are path prefixes rather than a complete glob implementation.
+- Nested link labels such as `[see [inner]][id]` resolve on the outer label
+  only.
+- Existence checks cover Markdown documents and known asset extensions. A link
+  to another repository file, such as `LICENSE` or a `.toml`, is reported as a
+  missing resource even when the file is present.
 - Safe automatic repair and issue baselines are planned for later releases.
 
 ## License
 
-MIT
+MIT, in the `LICENSE` file at the repository root.
+
+Dependency licenses, fixture provenance, and the AI-assistance statement are
+recorded in [third-party notes](docs/third-party.md).
