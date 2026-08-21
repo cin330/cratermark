@@ -1,0 +1,12 @@
+# Keep every text file LF in the index and in the working tree. MoonBit tools
+# write LF, so without this a Windows checkout makes `moon fmt --check` and
+# `moon info` look like they changed files they did not touch.
+* text=auto eol=lf
+
+# Windows launchers must keep CRLF or cmd.exe mis-parses them.
+*.cmd text eol=crlf
+
+*.png binary
+*.jpg binary
+*.ico binary
+*.wasm binary
