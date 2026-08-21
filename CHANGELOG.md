@@ -2,6 +2,23 @@
 
 All notable changes to CraterMark are documented here.
 
+## 0.5.0 - 2026-08-21
+
+- Resolve shortcut reference links and images such as `[guide]` when a matching
+  definition exists, and leave unmatched brackets as plain text.
+- Extract raw-HTML `<a>` and `<img>` targets whose opening tag spans several
+  lines, reporting the position of the tag start.
+- Mask fenced code blocks and multiline HTML comments before extraction so
+  sample links inside them are no longer analyzed.
+- Add a black-box test suite for the public `docgraph` API alongside the
+  existing white-box tests.
+- Pin text files to LF through `.gitattributes` so `moon fmt --check` and
+  `moon info` behave the same on Windows and Linux.
+- Run CI on Linux and macOS, fail on warnings in tests, and verify that the
+  generated `.mbti` interfaces are committed.
+- Document dependency licenses, fixture provenance, and AI assistance in
+  `docs/third-party.md`.
+
 ## 0.4.1 - 2026-08-16
 
 - Fix a false negative where undefined reference-style links and images were
